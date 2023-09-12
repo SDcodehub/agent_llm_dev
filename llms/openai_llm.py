@@ -74,3 +74,24 @@ class ChatGPTConfig:
         with open(config_path, "r") as config_file:
             config_dict = json.load(config_file)
         return cls(**config_dict)
+    
+
+if __name__ == '__main__':
+
+    import os
+    import sys
+
+    root = os.path.dirname(__file__)
+    sys.path.append(root)
+
+    from llms.openai_llm import ChatGPTConfig
+
+    config = ChatGPTConfig(
+    )
+
+    print(config)
+
+    config.save_to_file("llmconfig.json")
+
+    loaded_config = ChatGPTConfig.load_from_file("llmconfig.json")
+    print(loaded_config)
