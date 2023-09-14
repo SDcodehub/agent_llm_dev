@@ -21,7 +21,7 @@ def setup_logger(app_name: str, log_level: int = logging.INFO) -> logging.Logger
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     log_file = os.path.join(log_dir, f"{app_name}_{timestamp}.log")
 
-    logger = logging.getLogger("your_app_logger")
+    logger = logging.getLogger(app_name)  # Changed logger name to app_name
     logger.setLevel(log_level)
 
     # Create a file handler to log messages to the file
@@ -33,7 +33,7 @@ def setup_logger(app_name: str, log_level: int = logging.INFO) -> logging.Logger
     console_handler.setLevel(log_level)
 
     # Define a formatter for log messages
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s")
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
 
