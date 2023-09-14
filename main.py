@@ -13,16 +13,29 @@ from tools.logging_utils import setup_logger
 from tools.api_key_check import check_api_key
 from tools.config_utils import get_config_paths
 
+from chat_setup.directory_structure import DirectoryStructure
+
 
 def main():
     # Parse command-line arguments
     args = parse_arguments()
 
+    # Create an instance of the DirectoryStructure class
+    directory_structure = DirectoryStructure(args.app_name)
+
+    # Create the directory structure
+    directory_structure.create_structure()
+
+    # Now you can use these directory paths
+    log_file_path = directory_structure.get_logs_directory()
+    # code_file_path = os.path.join(directory_structure.get_codes_directory(), "my_code.py")
+    # config_file_path = os.path.join(directory_structure.get_configs_directory(), "my_config.json")
+
     # Determine the log level based on the presence of the --debug flag
     log_level = logging.DEBUG if args.debug else logging.INFO
 
     # Set up the logger with the determined log level and app_name
-    logger = setup_logger(args.app_name, log_level)
+    logger = setup_logger(log_file_path, args.app_name, log_level)
     logger.info("Starting your app")
 
     app_desc = args.app_desc

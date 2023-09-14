@@ -1,27 +1,26 @@
 import logging
 import os
 from datetime import datetime
+from pathlib import Path
 
-def setup_logger(app_name: str, log_level: int = logging.INFO) -> logging.Logger:
+def setup_logger(log_folder: Path, app_name: str, log_level: int = logging.INFO) -> logging.Logger:
     """
     Set up a logger for the application.
 
     Args:
+        log_folder (Path): The path to the folder where log files will be stored.
         app_name (str): The name of the application.
         log_level (int): The log level for the logger.
 
     Returns:
         logging.Logger: The configured logger.
     """
-    # Create a directory for logs if it doesn't exist
-    log_dir = os.path.join("outputs", "logs")
-    os.makedirs(log_dir, exist_ok=True)
 
     # Generate a unique log file name based on app_name and timestamp
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    log_file = os.path.join(log_dir, f"{app_name}_{timestamp}.log")
+    log_file = os.path.join(log_folder, f"{app_name}_{timestamp}.log")
 
-    logger = logging.getLogger(app_name)  # Changed logger name to app_name
+    logger = logging.getLogger(app_name)
     logger.setLevel(log_level)
 
     # Create a file handler to log messages to the file
@@ -40,5 +39,8 @@ def setup_logger(app_name: str, log_level: int = logging.INFO) -> logging.Logger
     # Add the handlers to the logger
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+
+    # Log the initial timestamp
+    logger.info("Logging started at %s.", timestamp)
 
     return logger
