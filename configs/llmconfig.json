@@ -1,1 +1,12 @@
-{"temperature": 0.2, "top_p": 1.0, "n": 1, "stream": false, "stop": null, "max_tokens": null, "presence_penalty": 0.0, "frequency_penalty": 0.0, "logit_bias": {}, "user": ""}
+{
+    "temperature": 0.2,
+    "top_p": 1.0,
+    "n": 1,
+    "stream": false,
+    "stop": null,
+    "max_tokens": null,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "logit_bias": {},
+    "user": ""
+}

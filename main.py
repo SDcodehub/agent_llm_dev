@@ -3,17 +3,17 @@ import sys
 import argparse
 import logging
 
-# Add the root directory to sys.path to enable imports from the "tools" package
+# Add the root directory to sys.path to enable imports from the "utils" package
 root = os.path.dirname(__file__)
 sys.path.append(root)
 
-# Import specific functions from the "tools" package
-from tools.argparse_utils import parse_arguments
-from tools.logging_utils import setup_logger
-from tools.api_key_check import check_api_key
-from tools.config_utils import get_config_paths
+# Import specific functions from the "utils" package
+from utils.argparse_utils import parse_arguments
+from utils.logging_utils import setup_logger
+from utils.api_key_check import check_api_key
+from utils.config_utils import get_config_paths
 
-from chat_setup.directory_structure import DirectoryStructure
+from setup.directory_structure import DirectoryStructure
 
 
 def main():
@@ -53,8 +53,6 @@ def main():
         task_config_path,
     ) = get_config_paths()
 
-    # Now you have the paths to the configuration files and can use them in your app logic.
-
     logger.info(f"{app_desc=}")
     logger.info(f"{app_name=}")
     logger.info(f"{model=}")
@@ -63,6 +61,13 @@ def main():
     logger.info(f"{taskchain_config_path=}")
     logger.info(f"{task_config_path=}")
     logger.info(f"{openai_api_key=}")
+
+
+    # Make selection of people working on project.
+
+    # Initiate each phase and exxecute it
+
+    # save files
 
 if __name__ == "__main__":
     main()

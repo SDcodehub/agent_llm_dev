@@ -6,6 +6,7 @@ from typing import Dict, Optional, Sequence, Union
 # Define the path to the 'configs' directory within your package
 CONFIGS_DIR = os.path.join(os.path.dirname(__file__), "../configs")
 
+
 @dataclass(frozen=True)
 class ChatGPTConfig:
     """
