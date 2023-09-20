@@ -1,6 +1,5 @@
 import os
 
-
 def get_config_paths() -> tuple:
     """
     Get the paths to configuration files.
@@ -8,11 +7,14 @@ def get_config_paths() -> tuple:
     Returns:
         tuple: A tuple of paths to configuration files.
     """
-    # Get the absolute path to the directory where your utils.py script is located
+    # Get the absolute path to the directory where your config_utils.py script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Specify the directory where your config files are located (relative to the script directory)
-    config_dir = os.path.join(script_dir, "configs")
+    # Go up one level to the parent directory to remove "utils" from the path
+    parent_dir = os.path.dirname(script_dir)
+
+    # Specify the directory where your config files are located (relative to the parent directory)
+    config_dir = os.path.join(parent_dir, "configs")
 
     # Define the names of the config files
     agents_config_file = "AgentsConfig.json"

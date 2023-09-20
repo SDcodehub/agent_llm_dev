@@ -4,6 +4,8 @@ from utils.logging_utils import setup_logger
 from utils.api_key_check import check_api_key
 from utils.config_utils import get_config_paths
 
+from prompt_config.promptformatter import AgentMessageFormatter, SystemMessageFormatter
+
 from llms.openai_llm import ChatGPTConfig
 from chat.openai_chat_bot import OpenAIChatBot
 
@@ -68,35 +70,51 @@ def main():
 
     # Make selection of people working on project.
 
-    # Create an OpenAIChatBot instance
-    chat_bot = OpenAIChatBot(model=model, api_key=openai_api_key,
-                             chat_config=ChatGPTConfig.load_from_file("llmconfig.json"))
+    # Create an instance of the AgentMessageFormatter
+    # Define the path to the agentsconfig file
+    agents_config_path = agents_config_path
 
-    # Trial 1
-    message_1 = Message()
-    message_1.system("You are a helpful assistant.")
-    message_1.user("Who won the world series in 2020?")
-    message_1.assistant("The Los Angeles Dodgers won the World Series in 2020.")
-    message_1.user("Where was it played?")
+    # Create an instance of the SystemMessageFormatter
+    system_formatter = SystemMessageFormatter(agents_config_path)
 
-    messages_1 = message_1.messages
-    response_1 = chat_bot.send_messages_and_get_response(messages_1)
+    # Example usage for generating a system message for an agent role
+    agent_role = "Chief Executive Officer"
+    company_prompt = "Welcome to SmartAgents"
+    task = app_desc
+    system_message = system_formatter.format_message(agent_role, company_prompt, task)
+    logger.info(system_message.messages)
 
-    logger.info(f"Trial 1 - Assistant's Response: {response_1}")
-    logger.debug(f"{chat_bot.token_counter=}")
+    # # Create an OpenAIChatBot instance
+    # chat_bot = OpenAIChatBot(model=model, api_key=openai_api_key,
+    #                          chat_config=ChatGPTConfig.load_from_file("llmconfig.json"))
+    #
+    # # Trial 1
+    # message_1 = Message()
+    # message_1.system("You are a helpful assistant.")
+    # message_1.user("Who won the world series in 2020?")
+    # message_1.assistant("The Los Angeles Dodgers won the World Series in 2020.")
+    # message_1.user("Where was it played?")
+    #
+    # messages_1 = message_1.messages
+    # logger.debug(f"{chat_bot._calculate_token_count(messages_1)=}")
+    # response_1 = chat_bot.send_messages_and_get_response(messages_1)
+    #
+    # logger.info(f"Trial 1 - Assistant's Response: {response_1}")
+    #
+    #
+    # # Trial 2
+    # message_2 = Message()
+    # message_2.system("You are an informative assistant.")
+    # message_2.user("Tell me about the Eiffel Tower.")
+    # message_2.assistant("The Eiffel Tower is a famous landmark in Paris, France.")
+    # message_2.user("How tall is it?")
+    #
+    # messages_2 = message_2.messages
+    # logger.debug(f"{chat_bot._calculate_token_count(messages_2)=}")
+    # response_2 = chat_bot.send_messages_and_get_response(messages_2)
+    #
+    # logger.info(f"Trial 2 - Assistant's Response: {response_2}")
 
-    # Trial 2
-    message_2 = Message()
-    message_2.system("You are an informative assistant.")
-    message_2.user("Tell me about the Eiffel Tower.")
-    message_2.assistant("The Eiffel Tower is a famous landmark in Paris, France.")
-    message_2.user("How tall is it?")
-
-    messages_2 = message_2.messages
-    response_2 = chat_bot.send_messages_and_get_response(messages_2)
-
-    logger.info(f"Trial 2 - Assistant's Response: {response_2}")
-    logger.debug(f"{chat_bot.token_counter=}")
 
     # save files
 
