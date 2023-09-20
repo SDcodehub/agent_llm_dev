@@ -1,19 +1,23 @@
-import os
-import sys
-import argparse
-import logging
-
-# Add the root directory to sys.path to enable imports from the "utils" package
-root = os.path.dirname(__file__)
-sys.path.append(root)
-
-# Import specific functions from the "utils" package
+# Import utils
 from utils.argparse_utils import parse_arguments
 from utils.logging_utils import setup_logger
 from utils.api_key_check import check_api_key
 from utils.config_utils import get_config_paths
 
+from llms.openai_llm import ChatGPTConfig
+from chat.openai_chat_bot import OpenAIChatBot
+
+from chat.message import Message
+
 from setup.directory_structure import DirectoryStructure
+
+import os
+import sys
+import logging
+
+# Add the root directory to sys.path to enable imports from the "utils" package
+root = os.path.dirname(__file__)
+sys.path.append(root)
 
 
 def main():
@@ -61,13 +65,40 @@ def main():
     logger.info(f"{taskchain_config_path=}")
     logger.info(f"{task_config_path=}")
     logger.info(f"{openai_api_key=}")
-
+    logger.info(f"{openai_api_key=}")
 
     # Make selection of people working on project.
 
-    # Initiate each phase and exxecute it
+    # Create an OpenAIChatBot instance
+    chat_bot = OpenAIChatBot(model=model, api_key=openai_api_key,
+                             chat_config=ChatGPTConfig.load_from_file("llmconfig.json"))
+
+    # Trial 1
+    message_1 = Message()
+    message_1.system("You are a helpful assistant.")
+    message_1.user("Who won the world series in 2020?")
+    message_1.assistant("The Los Angeles Dodgers won the World Series in 2020.")
+    message_1.user("Where was it played?")
+
+    messages_1 = message_1.messages
+    response_1 = chat_bot.send_messages_and_get_response(messages_1)
+
+    print("Trial 1 - Assistant's Response:", response_1)
+
+    # Trial 2
+    message_2 = Message()
+    message_2.system("You are an informative assistant.")
+    message_2.user("Tell me about the Eiffel Tower.")
+    message_2.assistant("The Eiffel Tower is a famous landmark in Paris, France.")
+    message_2.user("How tall is it?")
+
+    messages_2 = message_2.messages
+    response_2 = chat_bot.send_messages_and_get_response(messages_2)
+
+    print("Trial 2 - Assistant's Response:", response_2)
 
     # save files
+
 
 if __name__ == "__main__":
     main()

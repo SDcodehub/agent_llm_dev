@@ -1,6 +1,7 @@
 import os
 import getpass
 
+
 def check_api_key(api_key_var_name: str = 'OPENAI_API_KEY') -> str:
     """
     Check if an API key is available in the environment variable or prompt the user to enter it.

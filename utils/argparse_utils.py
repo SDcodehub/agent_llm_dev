@@ -1,6 +1,6 @@
 import argparse
-import getpass
-import os
+from llms.openai_model import ModelType, model_type
+
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -27,9 +27,9 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument(
         "--model",
-        type=str,
-        choices=["GPT_3_5_TURBO", "GPT_4", "GPT_4_32K"],
-        default="GPT_3_5_TURBO",
+        type=model_type,
+        choices=list(ModelType),
+        default=ModelType.GPT_3_5_TURBO,
         help="Choose a model from available options (default: GPT_3_5_TURBO)",
     )
 
@@ -40,5 +40,9 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     args = parser.parse_args()
+
+    # Extract the enum value from the model argument
+    args.model = args.model.value
+
     return args
 

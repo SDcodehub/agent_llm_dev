@@ -1,4 +1,4 @@
-# utils/__init__.py
+# utils/__init__.py.py
 
 from . import file_utils
 from . import argparse_utils

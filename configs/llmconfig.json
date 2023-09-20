@@ -7,6 +7,5 @@
     "max_tokens": null,
     "presence_penalty": 0.0,
     "frequency_penalty": 0.0,
-    "logit_bias": {},
-    "user": ""
+    "logit_bias": {}
 }
