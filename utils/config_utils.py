@@ -1,5 +1,6 @@
 import os
 
+
 def get_config_paths() -> tuple:
     """
     Get the paths to configuration files.

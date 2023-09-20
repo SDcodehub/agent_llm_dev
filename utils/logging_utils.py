@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+
 def setup_logger(log_folder: Path, app_name: str, log_level: int = logging.INFO) -> logging.Logger:
     """
     Set up a logger for the application.

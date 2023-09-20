@@ -65,7 +65,6 @@ def main():
     logger.info(f"{taskchain_config_path=}")
     logger.info(f"{task_config_path=}")
     logger.info(f"{openai_api_key=}")
-    logger.info(f"{openai_api_key=}")
 
     # Make selection of people working on project.
 
@@ -83,7 +82,8 @@ def main():
     messages_1 = message_1.messages
     response_1 = chat_bot.send_messages_and_get_response(messages_1)
 
-    print("Trial 1 - Assistant's Response:", response_1)
+    logger.info(f"Trial 1 - Assistant's Response: {response_1}")
+    logger.debug(f"{chat_bot.token_counter=}")
 
     # Trial 2
     message_2 = Message()
@@ -95,7 +95,8 @@ def main():
     messages_2 = message_2.messages
     response_2 = chat_bot.send_messages_and_get_response(messages_2)
 
-    print("Trial 2 - Assistant's Response:", response_2)
+    logger.info(f"Trial 2 - Assistant's Response: {response_2}")
+    logger.debug(f"{chat_bot.token_counter=}")
 
     # save files
 

@@ -1,5 +1,6 @@
 import os
 
+
 def generate_folder_structure(directory: str, indent: str = "") -> str:
     """
     Generate a text-based representation of the folder structure, including folders, subfolders, and files (excluding hidden folders).
