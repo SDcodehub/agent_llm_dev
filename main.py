@@ -114,8 +114,6 @@ def main():
     # response_2 = chat_bot.send_messages_and_get_response(messages_2)
     #
     # logger.info(f"Trial 2 - Assistant's Response: {response_2}")
-
-
     # save files
 
 
