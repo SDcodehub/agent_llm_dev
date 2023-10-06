@@ -5,9 +5,17 @@ import os
 import openai
 import tiktoken  # Import tiktoken for token counting
 
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+)  # for exponential backoff
+
 # Get the absolute path to the project's root directory
 root_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(root_dir)
+
+
 
 
 class OpenAIChatBot:
@@ -128,6 +136,7 @@ class OpenAIChatBot:
         except Exception as e:
             raise ValueError(f"Error getting maximum token length: {str(e)}")
 
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))  # Apply the decorator here
     def _get_assistant_response(self, messages: List[Dict[str, str]]) -> Union[str, Dict]:
         """
         Sends messages to the OpenAI API and retrieves the response.

@@ -25,6 +25,7 @@ class AgentConversation:
         self.system_formatter = self.setup_system_formatter()
         self.openai_api_key = check_api_key('OPENAI_API_KEY')
         self.chat_bot = self.setup_chat_bot()
+        self.company_prompt = "Welcome to SmartAgents"
 
     # def setup_logger(self):
     #     log_file_path = f"logs/{self.app_name}"  # Adjust the log file path as needed
@@ -49,37 +50,75 @@ class AgentConversation:
         assistant_role_name = task_config.assistant_role_name
         phase_prompt = task_config.phase_prompt
 
+        self.logger.info("-" * 5 + task_name + "-" * 5)
+
         # Generate system messages for the user and assistant based on their roles
         user_system_message = self.system_formatter.format_message(
-            user_role_name, self.app_desc, task_name
+            user_role_name, self.company_prompt, self.app_desc
         )
+
         assistant_system_message = self.system_formatter.format_message(
-            assistant_role_name, self.app_desc, task_name
+            assistant_role_name, self.company_prompt, self.app_desc
         )
 
         # Start the conversation with initial system messages
-        user_messages = user_system_message.messages
-        assistant_messages = assistant_system_message.messages
+        # user_messages = user_system_message.messages
+        self.logger.debug(f'{user_system_message.messages=}')
+        # assistant_messages = assistant_system_message.messages
+        # self.logger.debug(f'{assistant_system_message.messages=}')
 
-        # Conduct the conversation by alternating between user and assistant messages
-        conversation = []
-        for i in range(len(phase_prompt)):
-            user_messages.append(phase_prompt[i])
-            response = self.chat_bot.send_messages_and_get_response(
-                user_messages + assistant_messages
+        # Concatenate phase_prompt into a single string
+
+        phase_prompt_str = "\n".join(phase_prompt).format(assistant_role=assistant_role_name)
+
+        # Add the concatenated phase_prompt to assistant_messages
+        assistant_system_message.user(phase_prompt_str)
+        self.logger.debug(f'{assistant_system_message.messages=}')
+
+        self.logger.info(f"User {user_role_name}: {phase_prompt_str}")
+
+        # # Conduct the conversation by alternating between assistant and user messages
+        # conversation = []
+
+        for _ in range(4):  # Maximum of 4 back-and-forth exchanges
+            # Assistant's turn
+            assistant_response = self.chat_bot.send_messages_and_get_response(
+                assistant_system_message.messages
             )
-            assistant_messages.append(response)
+            assistant_system_message.assistant(assistant_response)
+            user_system_message.user(assistant_response)
 
-            conversation.append({
-                "User": user_messages[-1],
-                "Assistant": response
-            })
+            self.logger.info(f"Assistant {assistant_role_name}: {assistant_response}")
 
-            # Terminate the conversation if it ends with "<INFO>"
-            if response.strip().startswith("<INFO>"):
+            # conversation.append({
+            #     "User": assistant_system_message.messages[-1]['content'],
+            #     "Assistant": assistant_response
+            # })
+
+            # Check if the assistant's response starts with "<INFO>" to terminate the conversation
+            if assistant_response.strip().startswith("<INFO>"):
                 break
 
-        return conversation
+            # User's turn
+            user_response = self.chat_bot.send_messages_and_get_response(
+                user_system_message.messages
+            )
+            user_system_message.assistant(user_response)
+            assistant_system_message.user(user_response)
+
+            self.logger.info(f"User {user_role_name}: {user_response}")
+
+            # conversation.append({
+            #     "Assistant": "extra_removed",
+            #     "User": user_response
+            #
+            # })
+
+            # Check if the user's response starts with "<INFO>" to terminate the conversation
+            if user_response.strip().startswith("<INFO>"):
+                break
+
+        # return conversation
 
 
 def task_config_decorator(func):
@@ -87,7 +126,7 @@ def task_config_decorator(func):
         task_configs = self.get_task_configs()
         for task_name, task_config in task_configs.items():
             conversation = func(self, task_name, task_config)
-            self.print_conversation(conversation)
+            # self.print_conversation(conversation)
     return wrapper
 
 
@@ -128,8 +167,9 @@ class AgentConversationExtended(AgentConversation):
     def print_conversation(self, conversation):
         # Print the conversation
         for exchange in conversation:
-            print(f"User: {exchange['User']}")
-            print(f"Assistant: {exchange['Assistant']}")
+            self.logger.info(f"User: {exchange['User']}")
+            self.logger.info(f"Assistant: {exchange['Assistant']}")
+
 
 if __name__ == "__main__":
     app_name = "YourAppName"

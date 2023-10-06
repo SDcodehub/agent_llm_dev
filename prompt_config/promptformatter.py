@@ -56,6 +56,27 @@ class SystemMessageFormatter(AgentMessageFormatter):
         return message
 
 
+# class TaskMessageFormatter(AgentMessageFormatter):
+#     def __init__(self, agents_config_path: str):
+#         super().__init__(agents_config_path)
+#
+#     def format_message(self, agent_role: str) -> str:
+#         """
+#         Format and return a system message based on agent's role, company prompt, and task.
+#
+#         Args:
+#             agent_role (str): The role of the agent.
+#             company_prompt (str): The company prompt.
+#             task (str): The task description.
+#
+#         Returns:
+#             str: The formatted system message.
+#         """
+#         message = Message()
+#         message.system(super().format_message(agent_role))
+#         return message
+
+
 if __name__ == "__main__":
     # Define the path to the agentsconfig file
     agents_config_path = 'agentsconfig.json'
