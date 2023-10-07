@@ -1,5 +1,7 @@
 from prompt_config.promptformatter import SystemMessageFormatter
 from chat.openai_chat_bot import OpenAIChatBot
+from prompt_config.taskconfig_formater import DynamicTaskConfigFormatter
+from prompt_config.task_config_vars import IntermediateVars
 from utils.logging_utils import setup_logger
 from chat.message import Message
 from llms.openai_llm import ChatGPTConfig
@@ -26,13 +28,9 @@ class AgentConversation:
         self.openai_api_key = check_api_key('OPENAI_API_KEY')
         self.chat_bot = self.setup_chat_bot()
         self.company_prompt = "Welcome to SmartAgents"
+        self.intermediate_vars = IntermediateVars()
+        print(self.intermediate_vars)
 
-    # def setup_logger(self):
-    #     log_file_path = f"logs/{self.app_name}"  # Adjust the log file path as needed
-    #     log_level = logging.DEBUG  # You can adjust the log level here
-    #     logger = setup_logger(log_file_path, self.app_name, log_level)
-    #     logger.info("Starting your app")
-    #     return logger
 
     def setup_system_formatter(self):
         agents_config_path, _, _, _ = get_config_paths()
@@ -61,15 +59,17 @@ class AgentConversation:
             assistant_role_name, self.company_prompt, self.app_desc
         )
 
-        # Start the conversation with initial system messages
-        # user_messages = user_system_message.messages
         self.logger.debug(f'{user_system_message.messages=}')
-        # assistant_messages = assistant_system_message.messages
-        # self.logger.debug(f'{assistant_system_message.messages=}')
 
-        # Concatenate phase_prompt into a single string
+        # Add data from the task to the IntermediateVars instance
+        self.intermediate_vars.task = task_name
 
-        phase_prompt_str = "\n".join(phase_prompt).format(assistant_role=assistant_role_name)
+        # Create a new DynamicTaskConfigFormatter for each task
+        dynamic_formatter = DynamicTaskConfigFormatter(self.intermediate_vars)
+
+        # Use the dynamic formatter to format the task_config
+        phase_prompt_str = self.dynamic_formatter.format_task_config(assistant_role_name, phase_prompt)
+        self.logger.debug(f'{phase_prompt_str=}')
 
         # Add the concatenated phase_prompt to assistant_messages
         assistant_system_message.user(phase_prompt_str)
@@ -90,11 +90,6 @@ class AgentConversation:
 
             self.logger.info(f"Assistant {assistant_role_name}: {assistant_response}")
 
-            # conversation.append({
-            #     "User": assistant_system_message.messages[-1]['content'],
-            #     "Assistant": assistant_response
-            # })
-
             # Check if the assistant's response starts with "<INFO>" to terminate the conversation
             if assistant_response.strip().startswith("<INFO>"):
                 break
@@ -108,16 +103,11 @@ class AgentConversation:
 
             self.logger.info(f"User {user_role_name}: {user_response}")
 
-            # conversation.append({
-            #     "Assistant": "extra_removed",
-            #     "User": user_response
-            #
-            # })
-
             # Check if the user's response starts with "<INFO>" to terminate the conversation
             if user_response.strip().startswith("<INFO>"):
                 break
 
+        # TODO parse the data output final call and add return it, add some post processing
         # return conversation
 
 
@@ -126,7 +116,7 @@ def task_config_decorator(func):
         task_configs = self.get_task_configs()
         for task_name, task_config in task_configs.items():
             conversation = func(self, task_name, task_config)
-            # self.print_conversation(conversation)
+            # TODO Need update to task_config_vars dataclass post execution of the conversation
     return wrapper
 
 
