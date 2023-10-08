@@ -32,7 +32,7 @@ class Message:
         Returns:
             None
         """
-        self.messages.append({"role": "system", "content": content})
+        self.messages.append({"role": "system", "content": f"""{str(content)}"""})
 
     def user(self, content: str) -> None:
         """
@@ -44,7 +44,7 @@ class Message:
         Returns:
             None
         """
-        self.messages.append({"role": "user", "content": content})
+        self.messages.append({"role": "user", "content": f"""{str(content)}"""})
 
     def assistant(self, content: str) -> None:
         """
@@ -56,4 +56,4 @@ class Message:
         Returns:
             None
         """
-        self.messages.append({"role": "assistant", "content": content})
+        self.messages.append({"role": "assistant", "content": f"""{str(content)}"""})
