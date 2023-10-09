@@ -1,5 +1,6 @@
 from prompt_config.promptformatter import SystemMessageFormatter
 from chat.openai_chat_bot import OpenAIChatBot
+from postprocess.code_output_parser import TaskParser
 from prompt_config.taskconfig_formater import DynamicTaskConfigFormatter
 from prompt_config.task_config_vars import IntermediateVars
 from utils.logging_utils import setup_logger
@@ -68,7 +69,7 @@ class AgentConversation:
         dynamic_formatter = DynamicTaskConfigFormatter(self.intermediate_vars)
 
         # Use the dynamic formatter to format the task_config
-        phase_prompt_str = self.dynamic_formatter.format_task_config(assistant_role_name, phase_prompt)
+        phase_prompt_str = dynamic_formatter.format_task_config(assistant_role_name, phase_prompt)
         self.logger.debug(f'{phase_prompt_str=}')
 
         # Add the concatenated phase_prompt to assistant_messages
@@ -80,7 +81,13 @@ class AgentConversation:
         # # Conduct the conversation by alternating between assistant and user messages
         # conversation = []
 
-        for _ in range(4):  # Maximum of 4 back-and-forth exchanges
+        # TODO add way to process the taskchainconfig file an get cyclenum
+        if task_name == "Coding":
+            cyclenum = 3
+        else:
+            cyclenum = 5
+
+        for count in range(cyclenum):  # Maximum of 4 back-and-forth exchanges
             # Assistant's turn
             assistant_response = self.chat_bot.send_messages_and_get_response(
                 assistant_system_message.messages
@@ -88,10 +95,13 @@ class AgentConversation:
             assistant_system_message.assistant(assistant_response)
             user_system_message.user(assistant_response)
 
+            last_conv = assistant_response
             self.logger.info(f"Assistant {assistant_role_name}: {assistant_response}")
 
             # Check if the assistant's response starts with "<INFO>" to terminate the conversation
             if assistant_response.strip().startswith("<INFO>"):
+                break
+            elif task_name == "Coding" and count == cyclenum-1:
                 break
 
             # User's turn
@@ -101,6 +111,7 @@ class AgentConversation:
             user_system_message.assistant(user_response)
             assistant_system_message.user(user_response)
 
+            last_conv = assistant_response
             self.logger.info(f"User {user_role_name}: {user_response}")
 
             # Check if the user's response starts with "<INFO>" to terminate the conversation
@@ -108,6 +119,18 @@ class AgentConversation:
                 break
 
         # TODO parse the data output final call and add return it, add some post processing
+        parser = TaskParser(task_name, last_conv)
+        output = parser.parse_output()
+
+        if task_name == "DemandAnalysis":
+            self.intermediate_vars.modality = output
+        elif task_name == "LanguageChoose":
+            self.intermediate_vars.language = output
+        elif task_name == "Coding":
+            # TODO store these codes temp
+            self.intermediate_vars.codes = output
+        else:
+            pass
         # return conversation
 
 
@@ -128,7 +151,7 @@ class AgentConversationExtended(AgentConversation):
     def get_task_configs(self):
         task_configs = {}
         try:
-            # Use the provided task_config_path to load the TaskConfig.json file
+            # Use the provided task_config_path to load the TaskConfig_original.json file
             with open(self.task_config_path, "r", encoding="utf-8") as config_file:
                 config_data = json.load(config_file)
 
@@ -143,9 +166,9 @@ class AgentConversationExtended(AgentConversation):
                     task_configs[task_name] = task_config
 
         except FileNotFoundError:
-            self.logger.error("TaskConfig.json file not found.")
+            self.logger.error("TaskConfig_original.json file not found.")
         except Exception as e:
-            self.logger.error(f"Error reading TaskConfig.json: {str(e)}")
+            self.logger.error(f"Error reading TaskConfig_original.json: {str(e)}")
 
         return task_configs
 
