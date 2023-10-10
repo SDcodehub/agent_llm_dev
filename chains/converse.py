@@ -1,5 +1,7 @@
 from prompt_config.promptformatter import SystemMessageFormatter
 from chat.openai_chat_bot import OpenAIChatBot
+from postprocess.code_output_parser import TaskParser
+from postprocess.codefile_creator import CodeFileGenerator
 from prompt_config.taskconfig_formater import DynamicTaskConfigFormatter
 from prompt_config.task_config_vars import IntermediateVars
 from utils.logging_utils import setup_logger
@@ -19,7 +21,7 @@ class TaskConfig:
 
 
 class AgentConversation:
-    def __init__(self, app_name, model, app_desc, logger):
+    def __init__(self, app_name, model, app_desc, logger, code_file_path):
         self.app_name = app_name
         self.model = model
         self.app_desc = app_desc
@@ -30,6 +32,7 @@ class AgentConversation:
         self.company_prompt = "Welcome to SmartAgents"
         self.intermediate_vars = IntermediateVars()
         print(self.intermediate_vars)
+        self.code_file_path = code_file_path
 
 
     def setup_system_formatter(self):
@@ -68,7 +71,7 @@ class AgentConversation:
         dynamic_formatter = DynamicTaskConfigFormatter(self.intermediate_vars)
 
         # Use the dynamic formatter to format the task_config
-        phase_prompt_str = self.dynamic_formatter.format_task_config(assistant_role_name, phase_prompt)
+        phase_prompt_str = dynamic_formatter.format_task_config(assistant_role_name, phase_prompt)
         self.logger.debug(f'{phase_prompt_str=}')
 
         # Add the concatenated phase_prompt to assistant_messages
@@ -80,7 +83,13 @@ class AgentConversation:
         # # Conduct the conversation by alternating between assistant and user messages
         # conversation = []
 
-        for _ in range(4):  # Maximum of 4 back-and-forth exchanges
+        # TODO add way to process the taskchainconfig file an get cyclenum
+        if task_name == "Coding":
+            cyclenum = 2
+        else:
+            cyclenum = 5
+
+        for count in range(cyclenum):  # Maximum of 4 back-and-forth exchanges
             # Assistant's turn
             assistant_response = self.chat_bot.send_messages_and_get_response(
                 assistant_system_message.messages
@@ -88,10 +97,13 @@ class AgentConversation:
             assistant_system_message.assistant(assistant_response)
             user_system_message.user(assistant_response)
 
+            last_conv = assistant_response
             self.logger.info(f"Assistant {assistant_role_name}: {assistant_response}")
 
             # Check if the assistant's response starts with "<INFO>" to terminate the conversation
             if assistant_response.strip().startswith("<INFO>"):
+                break
+            elif task_name == "Coding" and count == cyclenum-1:
                 break
 
             # User's turn
@@ -101,6 +113,7 @@ class AgentConversation:
             user_system_message.assistant(user_response)
             assistant_system_message.user(user_response)
 
+            last_conv = assistant_response
             self.logger.info(f"User {user_role_name}: {user_response}")
 
             # Check if the user's response starts with "<INFO>" to terminate the conversation
@@ -108,6 +121,48 @@ class AgentConversation:
                 break
 
         # TODO parse the data output final call and add return it, add some post processing
+
+        if task_name == "DemandAnalysis":
+
+            parser = TaskParser(task_name, last_conv)
+            output = parser.parse_output()
+
+            self.intermediate_vars.modality = output
+        elif task_name == "LanguageChoose":
+
+            parser = TaskParser(task_name, last_conv)
+            output = parser.parse_output()
+
+            self.intermediate_vars.language = output
+        elif task_name == "Coding":
+            # Split the string at "####"
+            split_string = last_conv.split("####")
+
+            # Remove leading and trailing whitespace from each part
+            split_string = [part.strip() for part in split_string]
+
+            # Remove empty strings from the result
+            split_string = [part for part in split_string if part]
+            entire_code = ''
+            for code_string in split_string:
+                try:
+                    parser = TaskParser(task_name, code_string)
+                    filename, extension, language, docstring, code = parser.parse_output()
+
+                    generator = CodeFileGenerator(filename, extension, language, docstring, code, self.code_file_path)
+                    generator.create_code_file()
+
+                    # filename, extension, language, docstring, code = output
+
+                    entire_code = entire_code + filename + '\n\n' + extension + '\n\n' +  language + '\n\n' +  docstring + '\n\n' + code
+
+                except Exception as e:
+                    self.logger.error(f"Parsing the output: {str(e)}")
+            self.intermediate_vars.codes = entire_code
+
+            self.logger.info("Done")
+        else:
+            pass
         # return conversation
 
 
@@ -115,14 +170,13 @@ def task_config_decorator(func):
     def wrapper(self, *args, **kwargs):
         task_configs = self.get_task_configs()
         for task_name, task_config in task_configs.items():
-            conversation = func(self, task_name, task_config)
-            # TODO Need update to task_config_vars dataclass post execution of the conversation
+            func(self, task_name, task_config)
     return wrapper
 
 
 class AgentConversationExtended(AgentConversation):
-    def __init__(self, app_name, model, app_desc, logger, task_config_path):
-        super().__init__(app_name, model, app_desc, logger)
+    def __init__(self, app_name, model, app_desc, logger, task_config_path, code_file_path):
+        super().__init__(app_name, model, app_desc, logger, code_file_path)
         self.task_config_path = task_config_path
 
     def get_task_configs(self):

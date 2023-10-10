@@ -1,5 +1,7 @@
 # agent_llm_dev - LLM Agents Framework
 
+![agent_llm_dev](/assets/llm_agents_15sec.gif)
+
 **agent_llm_dev** is a framework for developing Language Model (LLM) agents, designed to facilitate the creation of conversational AI agents. It is currently focused on software development tasks and includes features for post-processing conversation outputs. Future developments aim to make this framework more generalized for various tasks, incorporate human-in-the-loop capabilities, support long-term and short-term memory, enable self-reflection, and integrate tools like web scraping.
 
 This repository serves as an experimental platform for exploring and experimenting with different concepts related to agent development.
