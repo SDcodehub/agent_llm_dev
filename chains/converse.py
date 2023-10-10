@@ -1,6 +1,7 @@
 from prompt_config.promptformatter import SystemMessageFormatter
 from chat.openai_chat_bot import OpenAIChatBot
 from postprocess.code_output_parser import TaskParser
+from postprocess.codefile_creator import CodeFileGenerator
 from prompt_config.taskconfig_formater import DynamicTaskConfigFormatter
 from prompt_config.task_config_vars import IntermediateVars
 from utils.logging_utils import setup_logger
@@ -20,7 +21,7 @@ class TaskConfig:
 
 
 class AgentConversation:
-    def __init__(self, app_name, model, app_desc, logger):
+    def __init__(self, app_name, model, app_desc, logger, code_file_path):
         self.app_name = app_name
         self.model = model
         self.app_desc = app_desc
@@ -31,6 +32,7 @@ class AgentConversation:
         self.company_prompt = "Welcome to SmartAgents"
         self.intermediate_vars = IntermediateVars()
         print(self.intermediate_vars)
+        self.code_file_path = code_file_path
 
 
     def setup_system_formatter(self):
@@ -83,7 +85,7 @@ class AgentConversation:
 
         # TODO add way to process the taskchainconfig file an get cyclenum
         if task_name == "Coding":
-            cyclenum = 3
+            cyclenum = 2
         else:
             cyclenum = 5
 
@@ -119,17 +121,46 @@ class AgentConversation:
                 break
 
         # TODO parse the data output final call and add return it, add some post processing
-        parser = TaskParser(task_name, last_conv)
-        output = parser.parse_output()
 
         if task_name == "DemandAnalysis":
+
+            parser = TaskParser(task_name, last_conv)
+            output = parser.parse_output()
+
             self.intermediate_vars.modality = output
         elif task_name == "LanguageChoose":
+
+            parser = TaskParser(task_name, last_conv)
+            output = parser.parse_output()
+
             self.intermediate_vars.language = output
         elif task_name == "Coding":
-            # TODO store these codes temp
-            # TODO how will you parse multiple files
-            self.intermediate_vars.codes = output
+            # Split the string at "####"
+            split_string = last_conv.split("####")
+
+            # Remove leading and trailing whitespace from each part
+            split_string = [part.strip() for part in split_string]
+
+            # Remove empty strings from the result
+            split_string = [part for part in split_string if part]
+            entire_code = ''
+            for code_string in split_string:
+                try:
+                    parser = TaskParser(task_name, code_string)
+                    filename, extension, language, docstring, code = parser.parse_output()
+
+                    generator = CodeFileGenerator(filename, extension, language, docstring, code, self.code_file_path)
+                    generator.create_code_file()
+
+                    # filename, extension, language, docstring, code = output
+
+                    entire_code = entire_code + filename + '\n\n' + extension + '\n\n' +  language + '\n\n' +  docstring + '\n\n' + code
+
+                except Exception as e:
+                    self.logger.error(f"Parsing the output: {str(e)}")
+            self.intermediate_vars.codes = entire_code
+
+            self.logger.info("Done")
         else:
             pass
         # return conversation
@@ -139,20 +170,19 @@ def task_config_decorator(func):
     def wrapper(self, *args, **kwargs):
         task_configs = self.get_task_configs()
         for task_name, task_config in task_configs.items():
-            conversation = func(self, task_name, task_config)
-            # TODO Need update to task_config_vars dataclass post execution of the conversation
+            func(self, task_name, task_config)
     return wrapper
 
 
 class AgentConversationExtended(AgentConversation):
-    def __init__(self, app_name, model, app_desc, logger, task_config_path):
-        super().__init__(app_name, model, app_desc, logger)
+    def __init__(self, app_name, model, app_desc, logger, task_config_path, code_file_path):
+        super().__init__(app_name, model, app_desc, logger, code_file_path)
         self.task_config_path = task_config_path
 
     def get_task_configs(self):
         task_configs = {}
         try:
-            # Use the provided task_config_path to load the TaskConfig_original.json file
+            # Use the provided task_config_path to load the TaskConfig.json file
             with open(self.task_config_path, "r", encoding="utf-8") as config_file:
                 config_data = json.load(config_file)
 
@@ -167,9 +197,9 @@ class AgentConversationExtended(AgentConversation):
                     task_configs[task_name] = task_config
 
         except FileNotFoundError:
-            self.logger.error("TaskConfig_original.json file not found.")
+            self.logger.error("TaskConfig.json file not found.")
         except Exception as e:
-            self.logger.error(f"Error reading TaskConfig_original.json: {str(e)}")
+            self.logger.error(f"Error reading TaskConfig.json: {str(e)}")
 
         return task_configs
 
