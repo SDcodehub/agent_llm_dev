@@ -3,3 +3,10 @@ __pycache__/
 
 # Ignore the outputs folder
 outputs/
+
+recordings/
+
+.venv/
+
+.idea/
+
