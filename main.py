@@ -1,3 +1,8 @@
+"""Main file"""
+import os
+import sys
+import logging
+
 # Import utils
 from utils.argparse_utils import parse_arguments
 from utils.logging_utils import setup_logger
@@ -14,9 +19,6 @@ from chat.message import Message
 
 from setup.directory_structure import DirectoryStructure
 
-import os
-import sys
-import logging
 
 # Add the root directory to sys.path to enable imports from the "utils" package
 root = os.path.dirname(__file__)
@@ -51,6 +53,8 @@ def main():
 
     # Get the OpenAI API key securely
     openai_api_key = check_api_key('OPENAI_API_KEY')
+
+    
 
     # Get the paths to the configuration files
     (

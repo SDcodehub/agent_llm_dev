@@ -1,6 +1,6 @@
 import argparse
 from llms.openai_model import ModelType, model_type
-
+from llms.nvidia_model import NvidiaModelType, nvidia_model_type
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -26,11 +26,24 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--model",
+        "--openai_model",
         type=model_type,
         choices=list(ModelType),
         default=ModelType.GPT_3_5_TURBO,
-        help="Choose a model from available options (default: GPT_3_5_TURBO)",
+        help="Choose an OpenAI model from available options (default: GPT_3_5_TURBO)",
+    )
+
+    parser.add_argument(
+        "--nvidia_model",
+        type=nvidia_model_type,
+        choices=list(NvidiaModelType),
+        help="Choose an Nvidia model from available options",
+    )
+
+    parser.add_argument(
+        "--nvidia_api_key",
+        type=str,
+        help="API key for Nvidia platform",
     )
 
     parser.add_argument(
@@ -41,8 +54,10 @@ def parse_arguments() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    # Extract the enum value from the model argument
-    args.model = args.model.value
+    # Extract the enum value from the model arguments
+    if args.openai_model:
+        args.openai_model = args.openai_model.value
+    if args.nvidia_model:
+        args.nvidia_model = args.nvidia_model.value
 
     return args
-

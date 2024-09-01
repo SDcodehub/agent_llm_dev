@@ -11,7 +11,7 @@ class ModelType(Enum):
         GPT_4_32K (str): The actual name for the GPT-4 32K model.
         STUB (str): A stub model, for example purposes.
     """
-    GPT_3_5_TURBO: str = "gpt-3.5-turbo-16k-0613"
+    GPT_3_5_TURBO: str = "gpt-3.5-turbo"
     GPT_4: str = "gpt-4"
     GPT_4_32K: str = "gpt-4-32k"
 
