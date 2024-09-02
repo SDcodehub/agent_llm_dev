@@ -19,6 +19,7 @@ sys.path.append(root_dir)
 
 
 class OpenAIChatBot:
+    # TODO change this to the config and read from there
     num_max_token_map = {
         "gpt-3.5-turbo": 4096,
         "gpt-3.5-turbo-16k": 16384,

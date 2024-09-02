@@ -21,11 +21,13 @@ def get_config_paths() -> tuple:
     llm_config_file = "my_config.json"
     taskchain_config_file = "TaskchainConfigs.json"
     task_config_file = "TaskConfig.json"
+    env_file = ".env"
 
     # Construct the full paths to the config files
     agents_config_path = os.path.join(config_dir, agents_config_file)
     llm_config_path = os.path.join(config_dir, llm_config_file)
     taskchain_config_path = os.path.join(config_dir, taskchain_config_file)
     task_config_path = os.path.join(config_dir, task_config_file)
+    env_path = os.path.join(config_dir, env_file)
 
-    return agents_config_path, llm_config_path, taskchain_config_path, task_config_path
+    return agents_config_path, llm_config_path, taskchain_config_path, task_config_path, env_path

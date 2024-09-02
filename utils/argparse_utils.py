@@ -26,24 +26,22 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--openai_model",
-        type=model_type,
-        choices=list(ModelType),
-        default=ModelType.GPT_3_5_TURBO,
-        help="Choose an OpenAI model from available options (default: GPT_3_5_TURBO)",
-    )
-
-    parser.add_argument(
-        "--nvidia_model",
-        type=nvidia_model_type,
-        choices=list(NvidiaModelType),
-        help="Choose an Nvidia model from available options",
-    )
-
-    parser.add_argument(
-        "--nvidia_api_key",
+        "--model",
         type=str,
-        help="API key for Nvidia platform",
+        required=True,
+        help="Choose a model from available options",
+    )
+
+    parser.add_argument(
+        "--openai",
+        action="store_true",
+        help="Use OpenAI model",
+    )
+
+    parser.add_argument(
+        "--nvidia",
+        action="store_true",
+        help="Use Nvidia model",
     )
 
     parser.add_argument(
@@ -54,10 +52,18 @@ def parse_arguments() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    # Extract the enum value from the model arguments
-    if args.openai_model:
-        args.openai_model = args.openai_model.value
-    if args.nvidia_model:
-        args.nvidia_model = args.nvidia_model.value
+    # Check if both --openai and --nvidia flags are provided
+    if args.openai and args.nvidia:
+        raise ValueError("Both --openai and --nvidia flags cannot be provided simultaneously")
+
+    # Check if either --openai or --nvidia flag is provided
+    if not args.openai and not args.nvidia:
+        raise ValueError("Either --openai or --nvidia flag must be provided")
+
+    # Extract the enum value from the model argument based on the flag
+    if args.openai:
+        args.model = model_type(args.model).value
+    elif args.nvidia:
+        args.model = nvidia_model_type(args.model).value
 
     return args

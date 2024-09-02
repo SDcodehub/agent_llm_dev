@@ -21,5 +21,3 @@ def check_api_key(api_key_var_name: str = 'OPENAI_API_KEY') -> str:
 
         # Optionally, you can save it to the environment variable
         os.environ[api_key_var_name] = api_key
-
-    return api_key

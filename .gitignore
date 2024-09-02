@@ -11,3 +11,5 @@ recordings/
 .idea/
 
 .vscode
+
+.env

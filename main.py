@@ -8,6 +8,7 @@ from utils.argparse_utils import parse_arguments
 from utils.logging_utils import setup_logger
 from utils.api_key_check import check_api_key
 from utils.config_utils import get_config_paths
+from utils.load_env import load_env_file
 from chains.converse import AgentConversationExtended
 
 from prompt_config.promptformatter import AgentMessageFormatter, SystemMessageFormatter
@@ -51,17 +52,13 @@ def main():
     app_name = args.app_name
     model = args.model
 
-    # Get the OpenAI API key securely
-    openai_api_key = check_api_key('OPENAI_API_KEY')
-
-    
-
-    # Get the paths to the configuration files
+        # Get the paths to the configuration files
     (
         agents_config_path,
         llm_config_path,
         taskchain_config_path,
         task_config_path,
+        env_path
     ) = get_config_paths()
 
     logger.info(f"{app_desc=}")
@@ -71,9 +68,31 @@ def main():
     logger.info(f"{llm_config_path=}")
     logger.info(f"{taskchain_config_path=}")
     logger.info(f"{task_config_path=}")
+    logger.info(f"{env_path=}")
+
+
+    if args.openai:
+        try:
+            # Try to load the OpenAI API key from the environment file
+            load_env_file(env_path)
+        except Exception as e:
+            # If loading from the environment file fails, use the check_api_key function
+            logger.warning(f"Failed to load OPENAI_API_KEY from environment: {e}")
+            openai_api_key = check_api_key('OPENAI_API_KEY')
+
+    if args.nvidia:
+        logger.info("inside the nvidia")
+        try:
+            # Try to load the OpenAI API key from the environment file
+            load_env_file(env_path)
+        except Exception as e:
+            # If loading from the environment file fails, use the check_api_key function
+            logger.warning(f"Failed to load NVIDIA_API_KEY from environment: {e}")
+            nvidia_api_key = check_api_key('NVIDIA_API_KEY')
+
 
     # Create an instance of the AgentConversationExtended class
-    conversation_manager = AgentConversationExtended(app_name, model, app_desc, logger, task_config_path, code_file_path)
+    conversation_manager = AgentConversationExtended(app_name, model, app_desc, logger, task_config_path, code_file_path, openai=args.openai, nvidiaai=args.nvidia)
 
     # Run conversations for all tasks using the decorator
     conversation_manager.run_conversations()

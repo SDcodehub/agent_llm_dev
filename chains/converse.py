@@ -1,16 +1,13 @@
+import json
 from prompt_config.promptformatter import SystemMessageFormatter
 from chat.openai_chat_bot import OpenAIChatBot
+from chat.nvidia_chat_bot import NVIDIAChatBot
 from postprocess.code_output_parser import TaskParser
 from postprocess.codefile_creator import CodeFileGenerator
 from prompt_config.taskconfig_formater import DynamicTaskConfigFormatter
 from prompt_config.task_config_vars import IntermediateVars
-from utils.logging_utils import setup_logger
-from chat.message import Message
 from llms.openai_llm import ChatGPTConfig
 from utils.config_utils import get_config_paths
-from utils.api_key_check import check_api_key
-import logging
-import json
 from dataclasses import dataclass
 
 @dataclass
@@ -21,13 +18,14 @@ class TaskConfig:
 
 
 class AgentConversation:
-    def __init__(self, app_name, model, app_desc, logger, code_file_path):
+    def __init__(self, app_name, model, app_desc, logger, code_file_path, openai, nvidiaai):
         self.app_name = app_name
         self.model = model
         self.app_desc = app_desc
         self.logger = logger
         self.system_formatter = self.setup_system_formatter()
-        self.openai_api_key = check_api_key('OPENAI_API_KEY')
+        self.openai = openai
+        self.nvidiaai = nvidiaai
         self.chat_bot = self.setup_chat_bot()
         self.company_prompt = "Welcome to SmartAgents"
         self.intermediate_vars = IntermediateVars()
@@ -35,16 +33,22 @@ class AgentConversation:
         self.code_file_path = code_file_path
 
 
+
     def setup_system_formatter(self):
-        agents_config_path, _, _, _ = get_config_paths()
+        agents_config_path, _, _, _, _ = get_config_paths()
         return SystemMessageFormatter(agents_config_path)
 
     def setup_chat_bot(self):
-        return OpenAIChatBot(
-            model=self.model,
-            api_key=self.openai_api_key,
-            chat_config=ChatGPTConfig.load_from_file("llmconfig.json")
-        )
+        if self.openai:
+            return OpenAIChatBot(
+                model=self.model,
+                chat_config=ChatGPTConfig.load_from_file("llmconfig.json")
+            )
+        if self.nvidiaai:
+            return NVIDIAChatBot(
+                model=self.model,
+                chat_config=ChatGPTConfig.load_from_file("llmconfig.json")
+            )
 
     def create_conversation(self, task_name, task_config):
         user_role_name = task_config.user_role_name
@@ -175,8 +179,8 @@ def task_config_decorator(func):
 
 
 class AgentConversationExtended(AgentConversation):
-    def __init__(self, app_name, model, app_desc, logger, task_config_path, code_file_path):
-        super().__init__(app_name, model, app_desc, logger, code_file_path)
+    def __init__(self, app_name, model, app_desc, logger, task_config_path, code_file_path, openai=None, nvidiaai=None):
+        super().__init__(app_name, model, app_desc, logger, code_file_path, openai=openai, nvidiaai=nvidiaai)
         self.task_config_path = task_config_path
 
     def get_task_configs(self):

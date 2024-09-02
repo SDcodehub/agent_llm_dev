@@ -10,7 +10,7 @@ class NvidiaModelType(Enum):
         MODEL_C (str): The actual name for Model C.
         STUB (str): A stub model, for example purposes.
     """
-    llama3-70b-instruct: str = "meta/llama3-70b-instruct"
+    LLAMA3_70B_INSTRUCT: str = "meta/llama3-70b-instruct"
     MODEL_B: str = "nvidia-model-b"
     MODEL_C: str = "nvidia-model-c"
     STUB: str = "nvidia-stub"
