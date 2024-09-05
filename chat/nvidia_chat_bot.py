@@ -11,7 +11,8 @@ sys.path.append(root_dir)
 class NVIDIAChatBot:
     # TODO change this to the config and read from there
     num_max_token_map = {
-        "mistralai/mixtral-8x22b-instruct-v0.1": 32768,  # Adjust the token limit as per your model
+        "mistralai/mixtral-8x22b-instruct-v0.1": 32768,
+        "meta/llama3-70b-instruct": 8000,  # Adjust the token limit as per your model
     }
 
     def __init__(self, model: str, api_key: str = None, chat_config: Optional[Dict] = None):
@@ -46,14 +47,14 @@ class NVIDIAChatBot:
             Union[str, Dict]: The response from the NVIDIA AI Endpoints.
         """
         try:
-            # Calculate the token count
-            num_tokens = self._calculate_token_count(messages)
+            # # Calculate the token count
+            # num_tokens = self._calculate_token_count(messages)
 
-            # Check if the messages fit within the allowed context length
-            max_tokens = self._get_max_token_length()
-            if not self._check_message_length(num_tokens, max_tokens):
-                raise ValueError(f"Error: Messages exceed the allowed context length for model '{self.model}'. "
-                                 f"Allowed: {max_tokens} tokens, Present: {num_tokens} tokens.")
+            # # Check if the messages fit within the allowed context length
+            # max_tokens = self._get_max_token_length()
+            # if not self._check_message_length(num_tokens, max_tokens):
+            #     raise ValueError(f"Error: Messages exceed the allowed context length for model '{self.model}'. "
+            #                      f"Allowed: {max_tokens} tokens, Present: {num_tokens} tokens.")
 
             response = self._get_assistant_response(messages)
             return response
@@ -71,7 +72,9 @@ class NVIDIAChatBot:
             int: The number of tokens used.
         """
         try:
-            model_name = self.model
+            # TODO replace with the model name
+            # model_name = self.model
+            model_name = "gpt-4"
             if model_name in self.num_max_token_map:
                 encoding = tiktoken.encoding_for_model(model_name)
                 num_tokens = 0
@@ -134,6 +137,7 @@ class NVIDIAChatBot:
         try:
             # Combine messages into a single string
             message_text = " ".join([message['content'] for message in messages])
+
 
             # Invoke the NVIDIA AI Endpoints
             response = self.llm.invoke(message_text)

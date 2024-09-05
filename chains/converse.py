@@ -29,7 +29,6 @@ class AgentConversation:
         self.chat_bot = self.setup_chat_bot()
         self.company_prompt = "Welcome to SmartAgents"
         self.intermediate_vars = IntermediateVars()
-        print(self.intermediate_vars)
         self.code_file_path = code_file_path
 
 

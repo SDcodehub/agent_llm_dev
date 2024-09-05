@@ -16,7 +16,6 @@ class TaskParser:
         # print(self.response)
         # Search for matches in the input text
         match = re.search(pattern, self.response, re.MULTILINE | re.DOTALL)
-        print(match)
 
         if match:
             # Extract the matched components

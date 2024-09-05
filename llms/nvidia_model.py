@@ -11,6 +11,7 @@ class NvidiaModelType(Enum):
         STUB (str): A stub model, for example purposes.
     """
     LLAMA3_70B_INSTRUCT: str = "meta/llama3-70b-instruct"
+    LLAMA_3_1_70B_INSTRUCT: str = "meta/llama-3.1-70b-instruct"
     MODEL_B: str = "nvidia-model-b"
     MODEL_C: str = "nvidia-model-c"
     STUB: str = "nvidia-stub"

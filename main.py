@@ -5,7 +5,7 @@ import logging
 
 # Import utils
 from utils.argparse_utils import parse_arguments
-from utils.logging_utils import setup_logger
+from utils.logging_utils import setup_logger, setup_colored_logger
 from utils.api_key_check import check_api_key
 from utils.config_utils import get_config_paths
 from utils.load_env import load_env_file
@@ -45,7 +45,7 @@ def main():
     log_level = logging.DEBUG if args.debug else logging.INFO
 
     # Set up the logger with the determined log level and app_name
-    logger = setup_logger(log_file_path, args.app_name, log_level)
+    logger = setup_colored_logger(log_file_path, args.app_name, log_level)
     logger.info("Starting your app")
 
     app_desc = args.app_desc
